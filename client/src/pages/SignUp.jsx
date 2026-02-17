@@ -24,6 +24,7 @@ export default function SingUp() {
         headers: {
           "Content-type": "application/json",
         },
+        credentials: "include",
         body: JSON.stringify(formData),
       });
 
@@ -83,9 +84,7 @@ export default function SingUp() {
           <span className="text-black-500">Sign in</span>
         </Link>
       </div>
-      {error && (
-        <p className="text-red-500 mb-2">email or name already exist</p>
-      )}
+      {error && <p className="text-red-500 mb-2">{error}</p>}
     </div>
   );
 }
