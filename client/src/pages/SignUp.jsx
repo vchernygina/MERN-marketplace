@@ -84,7 +84,11 @@ export default function SingUp() {
           <span className="text-black-500">Sign in</span>
         </Link>
       </div>
-      {error && <p className="text-red-500 mb-2">{error}</p>}
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-4">
+          <p className="font-medium">{error}</p>
+        </div>
+      )}
     </div>
   );
 }
