@@ -1,6 +1,7 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import GoogleAuth from "../components/GoogleAuth";
 
 export default function SingUp() {
   const [formData, setFormData] = useState({});
@@ -73,10 +74,11 @@ export default function SingUp() {
         <button
           type="submit"
           disabled={loading}
-          className="bg-black-700 text-white p-3 rounded-lg hover:opacity-90 disabled:opacity-80"
+          className="bg-black text-white p-3 rounded-lg uppercase hover:opacity-75 cursor-pointer"
         >
           {loading ? "Loading ..." : "Sign up"}
         </button>
+        <GoogleAuth />
       </form>
       <div className="flex gap-2 mb-5">
         <p>Have an account?</p>

@@ -7,6 +7,7 @@ import {
   signInSuccess,
   signInFailure,
 } from "../redux/user/userSlise";
+import GoogleAuth from "../components/GoogleAuth";
 
 export default function SingIn() {
   const [formData, setFormData] = useState({});
@@ -69,10 +70,11 @@ export default function SingIn() {
         <button
           type="submit"
           disabled={loading}
-          className="bg-black-700 text-white p-3 rounded-lg hover:opacity-90 disabled:opacity-80"
+          className="bg-black text-white p-3 rounded-lg uppercase hover:opacity-75 cursor-pointer"
         >
           {loading ? "Loading ..." : "Sign In"}
         </button>
+        <GoogleAuth />
       </form>
       <div className="flex gap-2 mb-5">
         <p>Don't have an account?</p>
