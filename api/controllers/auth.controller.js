@@ -41,33 +41,26 @@ export const signin = async (req, res, next) => {
 
 export const google = async (req, res, next) => {
   try {
-    const user = await User.findOne({ email: req.body.email });
-    if (user) {
-      const defaultAvatar =
-        "https://cdn-icons-png.freepik.com/512/8870/8870455.png";
+    const { name, email, photo } = req.body;
 
+    let user = await User.findOne({ email });
+
+    if (user) {
       let shouldSave = false;
 
-      if ((!user.avatar || user.avatar === defaultAvatar) && req.body.photo) {
-        user.avatar = req.body.photo;
+      if ((!user.name || user.name.length < 2) && name) {
+        user.name = name;
         shouldSave = true;
       }
 
-      if ((!user.name || user.name.length < 2) && req.body.name) {
-        user.name = req.body.name;
+      if (!user.avatar && photo) {
+        user.avatar = photo;
         shouldSave = true;
       }
 
-      if (shouldSave) await user.save();
-
-      const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
-
-      const { password: pass, ...rest } = user._doc;
-
-      res
-        .cookie("access_token", token, { httpOnly: true })
-        .status(200)
-        .json(rest);
+      if (shouldSave) {
+        await user.save();
+      }
     } else {
       const generatedPassword =
         Math.random().toString(36).slice(-8) +
@@ -75,24 +68,31 @@ export const google = async (req, res, next) => {
 
       const hashedPassword = bcryptjs.hashSync(generatedPassword, 10);
 
-      const newUser = new User({
+      user = new User({
         name:
-          req.body.name.split(" ").join("").toLowerCase() +
+          name?.split(" ").join("").toLowerCase() +
           Math.random().toString(36).slice(-4),
-        email: req.body.email,
+        email,
         password: hashedPassword,
-        avatar: req.body.photo,
+        avatar: photo,
       });
-      await newUser.save();
 
-      const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET);
-      const { password: pass, ...rest } = newUser._doc;
-
-      res
-        .cookie("access_token", token, { httpOnly: true })
-        .status(200)
-        .json(rest);
+      await user.save();
     }
+
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "7d",
+    });
+
+    const { password: pass, ...rest } = user._doc;
+
+    res
+      .cookie("access_token", token, {
+        httpOnly: true,
+        sameSite: "lax",
+      })
+      .status(200)
+      .json(rest);
   } catch (error) {
     next(error);
   }

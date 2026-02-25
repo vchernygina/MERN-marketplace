@@ -128,16 +128,23 @@ export default function Profile() {
   const handleDeleteUser = async () => {
     try {
       dispatch(deleteUserStart());
-      const res = await fetch(`/api/user/delete/${currentUser._id}`, {
-        method: "DELETE",
-      });
+
+      const res = await fetch(
+        `http://localhost:3000/api/user/delete/${currentUser._id}`,
+        {
+          method: "DELETE",
+          credentials: "include",
+        }
+      );
+
       const data = await res.json();
-      if (data.success === false) {
-        dispatch(deleteUserFailure(data.message));
+
+      if (!res.ok || data?.success === false) {
+        dispatch(deleteUserFailure(data?.message || "Delete failed"));
         return;
       }
 
-      dispatch(deleteUserSuccess(data));
+      dispatch(deleteUserSuccess());
     } catch (error) {
       dispatch(deleteUserFailure(error.message));
     }
@@ -146,10 +153,13 @@ export default function Profile() {
   const handleSignOut = async () => {
     try {
       dispatch(signOutUserStart());
-      const res = await fetch(`/api/auth/signout`);
+      const res = await fetch("http://localhost:3000/api/auth/signout", {
+        method: "GET",
+        credentials: "include",
+      });
       const data = await res.json();
-      if (data.success === false) {
-        dispatch(signOutUserFailure(data.message));
+      if (!res.ok || data?.success === false) {
+        dispatch(signOutUserFailure(data?.message || "Sign out failed"));
         return;
       }
 

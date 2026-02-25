@@ -5,7 +5,7 @@ import { verifyToken } from "../utils/verifyToken.js";
 const router = express.Router();
 
 //Api route
-router.put("/update/:id", updateUser);
+router.put("/update/:id", verifyToken, updateUser);
 
 router.get("/test", (req, res) => {
   res.json({ message: "API running..." });
