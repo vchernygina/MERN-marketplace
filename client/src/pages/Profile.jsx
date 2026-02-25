@@ -5,6 +5,12 @@ import {
   updateUserStart,
   updateUserSuccess,
   updateUserFailure,
+  deleteUserStart,
+  deleteUserFailure,
+  deleteUserSuccess,
+  signOutUserStart,
+  signOutUserFailure,
+  signOutUserSuccess,
 } from "../redux/user/userSlise.js";
 
 export default function Profile() {
@@ -101,8 +107,9 @@ export default function Profile() {
 
       const data = await res.json();
 
-      if (!res.ok) {
-        dispatch(updateUserFailure(data?.message || "Update failed"));
+      if (!res.ok || data?.success === false) {
+        const msg = data?.message || "Update failed";
+        dispatch(updateUserFailure(msg));
         return;
       }
 
@@ -113,6 +120,39 @@ export default function Profile() {
     }
   };
 
+  const handleDeleteUser = async () => {
+    try {
+      dispatch(deleteUserStart());
+      const res = await fetch(`/api/user/delete/${currentUser._id}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (data.success === false) {
+        dispatch(deleteUserFailure(data.message));
+        return;
+      }
+
+      dispatch(deleteUserSuccess(data));
+    } catch (error) {
+      dispatch(deleteUserFailure(error.message));
+    }
+  };
+
+  const handleSignOut = async () => {
+    try {
+      dispatch(signOutUserStart());
+      const res = await fetch(`/api/auth/signout`);
+      const data = await res.json();
+      if (data.success === false) {
+        dispatch(signOutUserFailure(data.message));
+        return;
+      }
+
+      dispatch(signOutUserSuccess(data));
+    } catch (error) {
+      dispatch(signOutUserFailure(error.message));
+    }
+  };
   return (
     <div className="max-w-lg mx-auto p-6">
       <h1 className="text-3xl text-center font-semibold mb-6">Your profile</h1>
@@ -160,6 +200,7 @@ export default function Profile() {
           placeholder="password"
           id="password"
           className="border p-3 rounded-lg"
+          onChange={handleChangeData}
         />
 
         <button
@@ -186,8 +227,15 @@ export default function Profile() {
       </form>
 
       <div className="flex justify-between mt-6">
-        <span className="text-red-600 cursor-pointer">Delete Account</span>
-        <span className="text-red-600 cursor-pointer">Sign out</span>
+        <span
+          onClick={handleDeleteUser}
+          className="text-red-600 cursor-pointer"
+        >
+          Delete Account
+        </span>
+        <span onClick={handleSignOut} className="text-red-600 cursor-pointer">
+          Sign out
+        </span>
       </div>
       <p className="text-red-600 mb-5">{error ? error : ""}</p>
       <p className="text-green-600 mb-5">
