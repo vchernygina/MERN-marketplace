@@ -1,13 +1,25 @@
 import React, { useState, useRef } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { signInSuccess } from "../redux/user/userSlise.js";
+import {
+  updateUserStart,
+  updateUserSuccess,
+  updateUserFailure,
+  deleteUserStart,
+  deleteUserFailure,
+  deleteUserSuccess,
+  signOutUserStart,
+  signOutUserFailure,
+  signOutUserSuccess,
+} from "../redux/user/userSlise.js";
 
 export default function Profile() {
-  const { currentUser } = useSelector((state) => state.user);
-  const dispatch = useDispatch();
+  const { currentUser, loading, error } = useSelector((state) => state.user);
   const fileRef = useRef(null);
-
   const [uploading, setUploading] = useState(false);
+  const [formDataIssue, setFormDataIssue] = useState({});
+  const [updateSuccess, setUpdateSuccess] = useState(false);
+  const dispatch = useDispatch();
 
   const handleFileUpload = async (selectedFile) => {
     if (!selectedFile || !currentUser?._id) return;
@@ -30,16 +42,9 @@ export default function Profile() {
 
       const data = await res.json();
 
-      console.log("Cloudinary response:", data);
-      console.log("Cloudinary secure_url:", data.secure_url);
-      alert(2);
-
       if (!data.secure_url) {
         throw new Error("Cloudinary upload failed");
       }
-
-      console.log("Sending avatar to backend:", data.secure_url);
-      console.log("Current user ID:", currentUser._id);
 
       // Update user in backend
       const updateRes = await fetch(
@@ -83,11 +88,80 @@ export default function Profile() {
     }
   };
 
+  const handleChangeData = (e) => {
+    setFormDataIssue({ ...formDataIssue, [e.target.id]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      dispatch(updateUserStart());
+
+      const res = await fetch(
+        `http://localhost:3000/api/user/update/${currentUser._id}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify(formDataIssue),
+        }
+      );
+
+      const data = await res.json();
+
+      if (!res.ok || data?.success === false) {
+        const msg = data?.message || "Update failed";
+        dispatch(updateUserFailure(msg));
+        return;
+      }
+
+      dispatch(updateUserSuccess(data));
+      setUpdateSuccess(true);
+    } catch (error) {
+      dispatch(updateUserFailure(error.message || "Something went wrong"));
+    }
+  };
+
+  const handleDeleteUser = async () => {
+    try {
+      dispatch(deleteUserStart());
+      const res = await fetch(`/api/user/delete/${currentUser._id}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (data.success === false) {
+        dispatch(deleteUserFailure(data.message));
+        return;
+      }
+
+      dispatch(deleteUserSuccess(data));
+    } catch (error) {
+      dispatch(deleteUserFailure(error.message));
+    }
+  };
+
+  const handleSignOut = async () => {
+    try {
+      dispatch(signOutUserStart());
+      const res = await fetch(`/api/auth/signout`);
+      const data = await res.json();
+      if (data.success === false) {
+        dispatch(signOutUserFailure(data.message));
+        return;
+      }
+
+      dispatch(signOutUserSuccess(data));
+    } catch (error) {
+      dispatch(signOutUserFailure(error.message));
+    }
+  };
+
   return (
     <div className="max-w-lg mx-auto p-6">
       <h1 className="text-3xl text-center font-semibold mb-6">Your profile</h1>
 
-      <form className="flex flex-col gap-4">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <input
           type="file"
           hidden
@@ -109,27 +183,43 @@ export default function Profile() {
 
         <input
           type="text"
-          placeholder="username"
+          placeholder="username!!!!"
+          id="name"
+          defaultValue={currentUser.name}
           className="border p-3 rounded-lg"
+          onChange={handleChangeData}
         />
 
         <input
           type="text"
           placeholder="email"
+          defaultValue={currentUser.email}
+          id="email"
           className="border p-3 rounded-lg"
+          onChange={handleChangeData}
         />
 
         <input
           type="password"
           placeholder="password"
+          id="password"
           className="border p-3 rounded-lg"
+          onChange={handleChangeData}
         />
 
         <button
-          type="button"
-          className="bg-gray-500 text-white p-3 rounded-lg hover:opacity-90"
+          disabled={loading}
+          type="submit"
+          className="bg-gray-500 
+            text-white 
+            p-3 
+            rounded-lg 
+            hover:opacity-90
+            disabled:opacity-50
+            disabled:cursor-not-allowed
+            disabled:hover:opacity-50"
         >
-          Update
+          {loading ? "loading... " : "Update"}
         </button>
 
         <button
@@ -141,9 +231,20 @@ export default function Profile() {
       </form>
 
       <div className="flex justify-between mt-6">
-        <span className="text-red-600 cursor-pointer">Delete Account</span>
-        <span className="text-red-600 cursor-pointer">Sign out</span>
+        <span
+          onClick={handleDeleteUser}
+          className="text-red-600 cursor-pointer"
+        >
+          Delete Account
+        </span>
+        <span onClick={handleSignOut} className="text-red-600 cursor-pointer">
+          Sign out
+        </span>
       </div>
+      <p className="text-red-600 mb-5">{error ? error : ""}</p>
+      <p className="text-green-600 mb-5">
+        {updateSuccess ? "User is updated Success!!!!" : ""}
+      </p>
     </div>
   );
 }
