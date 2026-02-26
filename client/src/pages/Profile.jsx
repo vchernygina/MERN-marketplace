@@ -64,7 +64,7 @@ export default function Profile() {
       console.log("Updated avatar from backend:", updatedUser?.avatar);
 
       if (!updateRes.ok) {
-        throw new Error(updatedUser.message || "User update failed");
+        throw new Error(updatedUser.message || "User update failed !!!");
       }
 
       // Update Redux
@@ -119,7 +119,7 @@ export default function Profile() {
       dispatch(updateUserSuccess(data));
       setUpdateSuccess(true);
     } catch (error) {
-      dispatch(updateUserFailure(error.message || "Something went wrong"));
+      dispatch(updateUserFailure(error.message || "Something went wrong !!!"));
     }
   };
 
