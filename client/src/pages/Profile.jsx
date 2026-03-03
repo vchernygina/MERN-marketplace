@@ -13,6 +13,8 @@ import {
   signOutUserSuccess,
 } from "../redux/user/userSlise.js";
 
+import { Link } from "react-router-dom";
+
 export default function Profile() {
   const { currentUser, loading, error } = useSelector((state) => state.user);
   const fileRef = useRef(null);
@@ -222,12 +224,12 @@ export default function Profile() {
           {loading ? "loading... " : "Update"}
         </button>
 
-        <button
-          type="button"
-          className="bg-green-600 text-white p-3 rounded-lg hover:opacity-90"
+        <Link
+          to="/create-listing"
+          className="create-listing-link bg-green-600 text-white no-underline p-3 rounded-lg hover:opacity-90 flex items-center justify-center"
         >
           Create listing
-        </button>
+        </Link>
       </form>
 
       <div className="flex justify-between mt-6">
